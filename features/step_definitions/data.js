@@ -46,7 +46,7 @@ module.exports = function () {
         q.awaitAll(callback);
     });
 
-    this.Given(/^the node map$/, (table, callback) => {
+    this.Given(/^the node map$/, (docstring, callback) => {
         var q = d3.queue();
 
         var addNode = (name, ri, ci, cb) => {
@@ -59,30 +59,32 @@ module.exports = function () {
                     lonLat = this.tableCoordToLonLat(ci, ri);
                     this.addOSMNode(nodeName, lonLat[0], lonLat[1], nodeID);
                 } else {
-                    if (name.length !== 1) throw new Error(util.format('*** node invalid name %s, must be single characters', name));
-                    if (!name.match(/[a-z0-9]/)) throw new Error(util.format('*** invalid node name %s, must me alphanumeric', name));
+                    //if (name.length !== 1) throw new Error(util.format('*** node invalid name %s, must be single characters', name));
+                    //if (!name.match(/[a-z0-9]/)) throw new Error(util.format('*** invalid node name %s, must me alphanumeric', name));
 
                     var lonLat;
-                    if (name.match(/[a-z]/)) {
+                    if (name.match(/[a-z]/) ) {
                         if (this.nameNodeHash[name]) throw new Error(util.format('*** duplicate node %s', name));
                         lonLat = this.tableCoordToLonLat(ci, ri);
                         this.addOSMNode(name, lonLat[0], lonLat[1], null);
-                    } else {
+                    } else if (name.match(/[0-9]/) ) {
                         if (this.locationHash[name]) throw new Error(util.format('*** duplicate node %s'), name);
                         lonLat = this.tableCoordToLonLat(ci, ri);
                         this.addLocation(name, lonLat[0], lonLat[1], null);
                     }
                 }
-
-                cb();
             }
-            else cb();
+            cb();
         };
 
-        table.raw().forEach((row, ri) => {
-            row.forEach((name, ci) => {
-                q.defer(addNode, name, ri, ci);
-            });
+        const grid = docstring.split(/\n/).map(row => row.match( /(.|[\r\n]){1,2}/g ) );
+        grid.forEach((row, ri) => {
+            row.forEach((cell, ci) => {
+                node = cell.substring(0,1)
+                if( node != " " ) {
+                    q.defer(addNode, node, ri, ci);
+                }
+            } );
         });
 
         q.awaitAll(callback);
