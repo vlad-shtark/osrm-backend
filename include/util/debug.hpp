@@ -29,7 +29,7 @@ inline void print(const engine::guidance::RouteStep &step)
 
     for (const auto &intersection : step.intersections)
     {
-        std::cout << "(Lanes: " << static_cast<int>(intersection.lanes.lanes_in_turn)
+        std::cout << "(Lanes: " << static_cast<int>(intersection.lanes.lanes_in_turn) << " "
                   << static_cast<int>(intersection.lanes.first_lane_from_the_right)
                   << " [" << intersection.in << "," << intersection.out << "]" <<
                   " bearings:";

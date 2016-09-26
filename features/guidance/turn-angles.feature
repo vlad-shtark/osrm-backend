@@ -1003,7 +1003,7 @@ Feature: Simple Turns
             | a,c       | rose,trift,trift  | depart,new name slight left,arrive |
             | a,k       | rose,muhle,muhle  | depart,turn slight right,arrive    |
             | d,f       | trift,rose,rose   | depart,new name straight,arrive    |
-            | d,k       | trift,muhle,muhle | depart,turn left,arrive            |
+            | d,k       | trift,muhle,muhle | depart,turn sharp left,arrive      |
             | d,c       | trift,trift,trift | depart,continue uturn,arrive       |
 
     #http://www.openstreetmap.org/#map=19/52.50740/13.44824

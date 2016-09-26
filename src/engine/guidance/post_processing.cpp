@@ -381,10 +381,6 @@ double findTotalTurnAngle(const RouteStep &entry_step, const RouteStep &exit_ste
 
     const auto exit_angle = turn_angle(exit_step_entry_bearing, exit_step_exit_bearing);
     const auto entry_angle = turn_angle(entry_step_entry_bearing, entry_step_exit_bearing);
-    std::cout << "Entry: " << entry_intersection.in << " " << entry_intersection.out << std::endl;
-    std::cout << "Bearings: " << entry_step_entry_bearing << " " << entry_step_exit_bearing
-              << std::endl;
-    std::cout << "Angles: " << entry_angle << " Exit: " << exit_angle << std::endl;
 
     // We allow for minor deviations from a straight line
     if ((entry_step.distance < MAX_COLLAPSE_DISTANCE && exit_step.intersections.size() == 1) ||
@@ -436,8 +432,6 @@ void collapseUTurn(std::vector<RouteStep> &steps,
                    const std::size_t one_back_index,
                    const std::size_t step_index)
 {
-    // std::cout << "Collapsing UTurn" << step_index << " " << one_back_index << " " <<
-    // two_back_index << std::endl;
     BOOST_ASSERT(two_back_index < steps.size());
     BOOST_ASSERT(step_index < steps.size());
     BOOST_ASSERT(one_back_index < steps.size());
@@ -497,7 +491,6 @@ void collapseTurnAt(std::vector<RouteStep> &steps,
          !(one_back_step.maneuver.instruction.type == TurnType::Merge)))
     // the check against merge is a workaround for motorways
     {
-        std::cout << "A" << std::endl;
         BOOST_ASSERT(two_back_index < steps.size());
         if (isUTurn(one_back_step, current_step, steps[two_back_index]))
         {
@@ -547,7 +540,6 @@ void collapseTurnAt(std::vector<RouteStep> &steps,
              isCollapsableInstruction(current_step.maneuver.instruction) &&
              compatible(one_back_step, current_step))
     {
-        std::cout << "B" << std::endl;
         steps[one_back_index] = elongate(std::move(steps[one_back_index]), steps[step_index]);
         // TODO check for lanes (https://github.com/Project-OSRM/osrm-backend/issues/2553)
         if (TurnType::Continue == one_back_step.maneuver.instruction.type &&
@@ -882,7 +874,6 @@ std::vector<RouteStep> collapseTurns(std::vector<RouteStep> steps)
     // first and last instructions are waypoints that cannot be collapsed
     for (std::size_t step_index = 1; step_index + 1 < steps.size(); ++step_index)
     {
-        std::cout << "Step: " << step_index << std::endl;
         const auto &current_step = steps[step_index];
         const auto next_step_index = step_index + 1;
         const auto one_back_index = getPreviousIndex(step_index, steps);
@@ -1055,27 +1046,21 @@ std::vector<RouteStep> collapseTurns(std::vector<RouteStep> steps)
             collapseTurnAt(steps, two_back_index, one_back_index, step_index);
         }
 
-        std::cout << "Check: " << step_index << std::endl;
         if (steps[step_index].maneuver.instruction.type == TurnType::Turn)
         {
-            std::cout << "Check Level 0" << std::endl;
             const auto u_turn_one_back_index = getPreviousIndex(step_index, steps);
             if (u_turn_one_back_index > 0)
             {
                 const auto u_turn_two_back_index = getPreviousIndex(u_turn_one_back_index, steps);
-                std::cout << "Check Level 1" << std::endl;
                 if (isUTurn(steps[u_turn_one_back_index],
                             steps[step_index],
                             steps[u_turn_two_back_index]))
                 {
-                    std::cout << "Collapsing UTurn: " << u_turn_two_back_index << " "
-                              << u_turn_one_back_index << " " << step_index << std::endl;
                     collapseUTurn(steps, u_turn_two_back_index, u_turn_one_back_index, step_index);
                 }
             }
         }
     }
-    std::cout << "Done" << std::endl;
 
     // handle final sliproad
     if (steps.size() >= 3 &&
