@@ -6,6 +6,7 @@
 #include "engine/phantom_node.hpp"
 #include "osrm/coordinate.hpp"
 #include "util/guidance/turn_lanes.hpp"
+#include "util/guidance/turn_bearing.hpp"
 #include "util/typedefs.hpp"
 
 #include <vector>
@@ -36,6 +37,11 @@ struct PathData
 
     // Source of the speed value on this road segment
     DatasourceID datasource_id;
+
+    // bearing (as seen from the intersection) pre-turn
+    util::guidance::TurnBearing pre_turn_bearing;
+    // bearing (as seen from the intersection) post-turn
+    util::guidance::TurnBearing post_turn_bearing;
 };
 
 struct InternalRouteResult

@@ -1,8 +1,10 @@
 #include "extractor/edge_based_edge.hpp"
 #include "extractor/edge_based_graph_factory.hpp"
+#include "util/bearing.hpp"
 #include "util/coordinate.hpp"
 #include "util/coordinate_calculation.hpp"
 #include "util/exception.hpp"
+#include "util/guidance/turn_bearing.hpp"
 #include "util/integer_range.hpp"
 #include "util/percent.hpp"
 #include "util/simple_logger.hpp"
@@ -434,8 +436,6 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
                 const int32_t turn_penalty =
                     scripting_environment.GetTurnPenalty(180. - turn.angle);
 
-                std::cout << "Penalty: " << turn_penalty << " for angle: " << turn.angle
-                          << std::endl;
                 const auto turn_instruction = turn.instruction;
 
                 if (turn_instruction.direction_modifier == guidance::DirectionModifier::UTurn)
@@ -455,7 +455,10 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
                     turn.lane_data_id,
                     turn_instruction,
                     entry_class_id,
-                    edge_data1.travel_mode);
+                    edge_data1.travel_mode,
+                    util::guidance::TurnBearing(
+                        util::bearing::reverseBearing(possible_turns[0].bearing)),
+                    util::guidance::TurnBearing(turn.bearing));
 
                 ++original_edges_counter;
 

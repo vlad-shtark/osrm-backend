@@ -33,8 +33,6 @@ namespace detail
 {
 std::pair<short, short> getDepartBearings(const LegGeometry &leg_geometry);
 std::pair<short, short> getArriveBearings(const LegGeometry &leg_geometry);
-std::pair<short, short> getIntermediateBearings(const LegGeometry &leg_geometry,
-                                                const std::size_t segment_index);
 } // ns detail
 
 inline std::vector<RouteStep> assembleSteps(const datafacade::BaseDataFacade &facade,
@@ -132,13 +130,20 @@ inline std::vector<RouteStep> assembleSteps(const datafacade::BaseDataFacade &fa
                     step_name_id = target_node.name_id;
                 }
 
-                bearings = detail::getIntermediateBearings(leg_geometry, segment_index);
-                std::cout << "Bearings: " << bearings.first << " " << bearings.second << std::endl;
+                // extract bearings
+                bearings = std::make_pair<std::uint16_t, std::uint16_t>(
+                    path_point.pre_turn_bearing.Get(), path_point.post_turn_bearing.Get());
                 const auto entry_class = facade.GetEntryClass(path_point.entry_classid);
                 const auto bearing_class =
                     facade.GetBearingClass(facade.GetBearingClassID(path_point.turn_via_node));
-                intersection.in = bearing_class.findMatchingBearing(
-                    util::bearing::reverseBearing(bearings.first));
+                auto bearing_data = bearing_class.getAvailableBearings();
+                std::cout << "Bearings: " << bearings.first << " " << bearings.second << " -";
+                for( auto b : bearing_data )
+                {
+                    std::cout << " " << b;
+                }
+                std::cout << std::endl;
+                intersection.in = bearing_class.findMatchingBearing(bearings.first);
                 intersection.out = bearing_class.findMatchingBearing(bearings.second);
                 intersection.location = facade.GetCoordinateOfNode(path_point.turn_via_node);
                 intersection.bearings.clear();
