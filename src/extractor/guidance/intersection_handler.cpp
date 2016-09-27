@@ -586,12 +586,16 @@ std::size_t IntersectionHandler::findObviousTurn(const EdgeID via_edge,
         // check if a turn is distinct enough
         const auto isDistinct = [&](std::size_t index, double deviation) {
             const auto adjusted_distinction_ratio =
-                (in_data.road_classification == best_data.road_classification &&
-                 best_data.road_classification.GetPriority() <
-                     node_based_graph.GetEdgeData(intersection[index].turn.eid)
-                         .road_classification.GetPriority())
-                    ? 0.8 * DISTINCTION_RATIO
-                    : DISTINCTION_RATIO;
+                (!intersection[index].entry_allowed
+                     ? 0.6 * DISTINCTION_RATIO
+                     : (in_data.road_classification == best_data.road_classification &&
+                        best_data.road_classification.GetPriority() <
+                            node_based_graph.GetEdgeData(intersection[index].turn.eid)
+                                .road_classification.GetPriority())
+                           ? 0.8 * DISTINCTION_RATIO
+                           : DISTINCTION_RATIO);
+            std::cout << "Best: " << best_deviation << " " << deviation
+                      << " Ratio: " << adjusted_distinction_ratio << std::endl;
             return index == 0 || deviation / best_deviation >= adjusted_distinction_ratio ||
                    (deviation > best_deviation &&
                     (!intersection[index].entry_allowed && in_data.distance > 30));
