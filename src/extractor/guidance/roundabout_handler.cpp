@@ -280,7 +280,7 @@ RoundaboutType RoundaboutHandler::getRoundaboutType(const NodeID nid) const
     const auto getEdgeLength = [&](const NodeID source_node, EdgeID eid) {
         auto length = 0;
         auto last_coord = getCoordinate(source_node);
-        const auto edge_bucket = compressed_edge_container.GetBucketReference(eid);
+        const auto &edge_bucket = compressed_edge_container.GetBucketReference(eid);
         for (const auto &compressed_edge : edge_bucket)
         {
             const auto next_coord = getCoordinate(compressed_edge.node_id);
