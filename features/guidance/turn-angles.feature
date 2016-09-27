@@ -700,7 +700,7 @@ Feature: Simple Turns
             | waypoints | route                   | turns                               |
             | a,j       | Siemens,Siemens,Siemens | depart,continue right,arrive        |
             | a,g       | Siemens,Erna,Erna       | depart,new name slight left,arrive  |
-            | g,j       | Erna,Siemens,Siemens    | depart,turn sharp left,arrive       |
+            | g,j       | Erna,Siemens,Siemens    | depart,turn left,arrive             |
             | g,a       | Erna,Siemens,Siemens    | depart,new name slight right,arrive |
 
      #http://www.openstreetmap.org/#map=19/52.51303/13.32170

@@ -585,9 +585,14 @@ std::size_t IntersectionHandler::findObviousTurn(const EdgeID via_edge,
 
         // check if a turn is distinct enough
         const auto isDistinct = [&](std::size_t index, double deviation) {
+            /*
+               If the neighbor is not possible to enter, we allow for a lower distinction rate. If
+               the road category is smaller, its also adjusted. Only roads of the same priority
+               require the full distinction ratio.
+            */
             const auto adjusted_distinction_ratio =
                 (!intersection[index].entry_allowed
-                     ? 0.6 * DISTINCTION_RATIO
+                     ? 0.7 * DISTINCTION_RATIO
                      : (in_data.road_classification == best_data.road_classification &&
                         best_data.road_classification.GetPriority() <
                             node_based_graph.GetEdgeData(intersection[index].turn.eid)
