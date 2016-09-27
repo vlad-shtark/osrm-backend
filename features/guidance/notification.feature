@@ -20,8 +20,8 @@ Feature: Notification on turn onto mode change
             | eg    | primary |       | wingo |
 
         When I route I should get
-            | waypoints | route                   | turns                                                                          |
-            | a,g       | bingo,ferry,wingo,wingo | depart,notification straight,notification right,arrive                         |
+            | waypoints | route                   | turns                                                   | modes                               |
+            | a,g       | bingo,ferry,wingo,wingo | depart,notification straight,notification right,arrive  | driving,ferry,driving,driving       |
 
     Scenario: Turn onto a Ferry
         Given the node map
@@ -40,9 +40,9 @@ Feature: Notification on turn onto mode change
             | ge    | primary |       | wingo | no     |
 
         When I route I should get
-            | waypoints | route                         | turns                                                               |
-            | g,a       | wingo,ferry,ferry,bingo,bingo | depart,notification right,continue right,notification right,arrive  |
-            | b,g       | dingo,ferry,ferry,wingo,wingo | depart,turn right,continue left,notification left,arrive            |
+            | waypoints | route                         | turns                                                               | modes                                   |
+            | g,a       | wingo,ferry,ferry,bingo,bingo | depart,notification right,continue right,notification right,arrive  | driving,ferry,ferry,driving,driving     |
+            | b,g       | dingo,ferry,ferry,wingo,wingo | depart,turn right,continue left,notification left,arrive            | driving,ferry,ferry,driving,driving     |
 
     Scenario: Straight onto a Ferry
         Given the node map
@@ -61,5 +61,5 @@ Feature: Notification on turn onto mode change
             | fi    | primary |       | dolly   | yes    |
 
         When I route I should get
-            | waypoints | route                            | turns                                                                          |
-            | a,i       | yonkers,ferry,maple,dolly,dolly  | depart,turn straight,notification right,new name sharp left,arrive             |
+            | waypoints | route                            | turns                                                              | modes                                 |
+            | a,i       | yonkers,ferry,maple,dolly,dolly  | depart,turn straight,notification right,new name sharp left,arrive | driving,ferry,driving,driving,driving |
