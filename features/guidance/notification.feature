@@ -7,7 +7,6 @@ Feature: Notification on turn onto mode change
 
     Scenario: Turn onto a Ferry
         Given the node map
-            | h |   |   |   |   |   |
             |   |   |   |   |   | f |
             | b | c |   |   | d | e |
             |   |   |   |   |   |   |
@@ -22,7 +21,7 @@ Feature: Notification on turn onto mode change
 
         When I route I should get
             | waypoints | route                   | turns                                                                          |
-            | a,g       | bingo,ferry,wingo,wingo | depart,notification straight,notification right,arrive                                 |
+            | a,g       | bingo,ferry,wingo,wingo | depart,notification straight,notification right,arrive                         |
 
     Scenario: Turn onto a Ferry
         Given the node map
@@ -41,8 +40,9 @@ Feature: Notification on turn onto mode change
             | ge    | primary |       | wingo | no     |
 
         When I route I should get
-            | waypoints | route                   | turns                                                                          |
-            | g,a       | wingo,ferry,ferry,bingo,bingo | depart,notification right,continue right,notification right,arrive               |
+            | waypoints | route                         | turns                                                               |
+            | g,a       | wingo,ferry,ferry,bingo,bingo | depart,notification right,continue right,notification right,arrive  |
+            | b,g       | dingo,ferry,ferry,wingo,wingo | depart,turn right,continue left,notification left,arrive            |
 
     Scenario: Straight onto a Ferry
         Given the node map
