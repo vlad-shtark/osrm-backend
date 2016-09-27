@@ -76,8 +76,49 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
     // if we are looking at a straight line, we don't care where exactly the coordinate
     // is. Simply return the final coordinate. Turn angles/turn vectors are the same no matter which
     // coordinate we look at.
-    if (coordinates.size() == 2)
+    if (coordinates.size() <= 2)
         return coordinates.back();
+
+    // get the distance along the road
+    const auto turn_segment_length = [&coordinates] {
+        double sum = 0;
+        for (auto coordinate = coordinates.begin(); coordinate + 1 != coordinates.end();
+             ++coordinate)
+            sum += util::coordinate_calculation::haversineDistance(*coordinate,
+                                                                   *(std::next(coordinate)));
+        return sum;
+    }();
+
+    // In an ideal world, the road would only have two coordinates if it goes mainly straigt. Since
+    // OSM is operating on noisy data, we have some variations going straight.
+    //
+    //              b                       d
+    // a ---------------------------------------------- e
+    //                           c
+    //
+    // The road from a-e offers a lot of variation, even though it is mostly straight. Here we
+    // calculate the distances of all nodes in between to the straight line between a and e. If the
+    // distances inbetween are small, we assume a straight road. To calculate these distances, we
+    // don't use the coordinates of the road itself but our just calculated regression vector
+    const auto GetMaxDeviation = [](std::vector<util::Coordinate>::const_iterator range_begin,
+                                    const std::vector<util::Coordinate>::const_iterator &range_end,
+                                    const util::Coordinate &straight_begin,
+                                    const util::Coordinate &straight_end) {
+        double deviation = 0;
+        for (; range_begin != range_end; range_begin = std::next(range_begin))
+        {
+            // find the projected coordinate
+            auto coord_between = util::coordinate_calculation::projectPointOnSegment(
+                                     straight_begin, straight_end, *range_begin)
+                                     .second;
+            // and calculate the distance between the intermediate coordinate and the coordinate
+            // on the osrm-way
+            deviation = std::max(
+                deviation,
+                util::coordinate_calculation::haversineDistance(coord_between, *range_begin));
+        }
+        return deviation;
+    };
 
     // Our very first step trims the coordinates to the FAR_LOOKAHEAD_DISTANCE. The idea here is to
     // filter all coordinates at the end of the road and consider only the form close to the
@@ -170,37 +211,6 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
         }
         return coordinates[1];
     }
-
-    // In an ideal world, the road would only have two coordinates if it goes mainly straigt. Since
-    // OSM is operating on noisy data, we have some variations going straight.
-    //
-    //              b                       d
-    // a ---------------------------------------------- e
-    //                           c
-    //
-    // The road from a-e offers a lot of variation, even though it is mostly straight. Here we
-    // calculate the distances of all nodes in between to the straight line between a and e. If the
-    // distances inbetween are small, we assume a straight road. To calculate these distances, we
-    // don't use the coordinates of the road itself but our just calculated regression vector
-    const auto GetMaxDeviation = [](std::vector<util::Coordinate>::const_iterator range_begin,
-                                    const std::vector<util::Coordinate>::const_iterator &range_end,
-                                    const util::Coordinate &straight_begin,
-                                    const util::Coordinate &straight_end) {
-        double deviation = 0;
-        for (; range_begin != range_end; range_begin = std::next(range_begin))
-        {
-            // find the projected coordinate
-            auto coord_between = util::coordinate_calculation::projectPointOnSegment(
-                                     straight_begin, straight_end, *range_begin)
-                                     .second;
-            // and calculate the distance between the intermediate coordinate and the coordinate
-            // on the osrm-way
-            deviation = std::max(
-                deviation,
-                util::coordinate_calculation::haversineDistance(coord_between, *range_begin));
-        }
-        return deviation;
-    };
 
     // We use the sum of least squares to calculate a linear regression through our coordinates.
     // This regression gives a good idea of how the road can be perceived and corrects for initial
@@ -368,10 +378,9 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
             node_coordinates[traversed_in_reverse ? intersection_node : to_node];
         std::cout << "Coordinates: Full: " << count << "  Reduced: " << coordinates.size()
                   << " Lanes: " << (int)intersection_lanes << " "
-                  << " Turn: " << std::setprecision(12)
-                  << toFloating(turn_coordinate.lat) << " " << toFloating(turn_coordinate.lon)
-                  << " - " << toFloating(coordinates.back().lat) << " "
-                  << toFloating(coordinates.back().lon)
+                  << " Turn: " << std::setprecision(12) << toFloating(turn_coordinate.lat) << " "
+                  << toFloating(turn_coordinate.lon) << " - " << toFloating(coordinates.back().lat)
+                  << " " << toFloating(coordinates.back().lon)
                   << " Regression: " << toFloating(destination_coordinate.lat) << " "
                   << toFloating(destination_coordinate.lon)
                   << " Regression: " << toFloating(regression_vector.first.lat) << " "
@@ -417,11 +426,9 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
 
     const auto IsCloseToLaneDistance = [intersection_lanes](const double width) {
         const auto maximal_lane_offset =
-            (std::max(intersection_lanes, (std::uint8_t)2) + 1) * 0.5 *
-            ASSUMED_LANE_WIDTH;
+            (std::max(intersection_lanes, (std::uint8_t)2) + 1) * 0.5 * ASSUMED_LANE_WIDTH;
         const auto minimal_lane_offset =
-            (std::min(intersection_lanes, (std::uint8_t)2)) * 0.5 *
-            ASSUMED_LANE_WIDTH;
+            (std::min(intersection_lanes, (std::uint8_t)2)) * 0.5 * ASSUMED_LANE_WIDTH;
         return minimal_lane_offset <= width && width <= maximal_lane_offset;
     };
 
@@ -455,36 +462,33 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
     // the road, index will be equal to coordinates.size() if the turn is not passing the test
     const std::size_t curved_offset_index = [&]() {
         const auto maximal_lane_offset =
-            (std::max(intersection_lanes, (std::uint8_t)2)) * 0.5 *
-            ASSUMED_LANE_WIDTH;
+            (std::max(intersection_lanes, (std::uint8_t)2)) * 0.5 * ASSUMED_LANE_WIDTH;
 
         // distance has to be long enough to even check
         if (total_distance < 3 * maximal_lane_offset)
             return coordinates.size();
 
-        const auto offset_index = [segment_distances,
-                                   intersection_lanes,
-                                   maximal_lane_offset,
-                                   straight_distance]() {
-            double current_segment_distance = 0;
+        const auto offset_index =
+            [segment_distances, intersection_lanes, maximal_lane_offset, straight_distance]() {
+                double current_segment_distance = 0;
 
-            for (std::size_t i = 0; i + 1 < segment_distances.size(); ++i)
-            {
-                if (current_segment_distance + segment_distances[i + 1] <
-                    1.5 * (maximal_lane_offset + ASSUMED_LANE_WIDTH))
+                for (std::size_t i = 0; i + 1 < segment_distances.size(); ++i)
                 {
-                    current_segment_distance += segment_distances[i + 1];
-                }
-                else
-                {
-                    if (current_segment_distance > straight_distance)
-                        return i;
+                    if (current_segment_distance + segment_distances[i + 1] <
+                        1.5 * (maximal_lane_offset + ASSUMED_LANE_WIDTH))
+                    {
+                        current_segment_distance += segment_distances[i + 1];
+                    }
                     else
-                        return segment_distances.size();
+                    {
+                        if (current_segment_distance > straight_distance)
+                            return i;
+                        else
+                            return segment_distances.size();
+                    }
                 }
-            }
-            return segment_distances.size();
-        }();
+                return segment_distances.size();
+            }();
 
         // at least two coordinates left and passed at least two coordinates
         if (offset_index <= 1 || offset_index + 1 >= coordinates.size())

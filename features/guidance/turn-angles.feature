@@ -1036,3 +1036,34 @@ Feature: Simple Turns
      When I route I should get
             | waypoints | bearings     | route           | turns         |
             | b,a       | 90,2 180,180 | circled,circled | depart,arrive |
+
+    Scenario: Curved Parking Lot Road
+        Given the node map
+            # 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | m |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            | f |   |   |   |   |   |   |   |   |   |   |   |   |   |   | e |   |   |   |   |   |   |   |   |   |   |   |   |   |   | d |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | l |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | k |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | j |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | i |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | h |   |   |   |   |   |   |   |   |   |   |   |   |
+            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | g |   |   |   |   |   |   |   |   |   |   |   |   |   |
+            | a |   |   |   |   |   |   |   |   |   |   |   |   |   |   | b |   |   |   |   |   |   |   |   |   |   |   |   |   |   | c |
+
+        And the ways
+            | nodes    | name | oneway | highway     |
+            | abc      | gato | yes    | residential |
+            | def      | gato | yes    | residential |
+            | bghijkle |      | yes    | service     |
+            | em       | hain | no     | service     |
+
+        When I route I should get
+            | waypoints | route          | turns                        |
+            | a,m       | gato,hain,hain | depart,turn left,arrive      |
+
