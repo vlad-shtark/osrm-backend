@@ -86,7 +86,7 @@ template <class IterType>
 EdgeWeight getNewWeight(IterType speed_iter,
                         const double &segment_length,
                         const std::vector<std::string> &segment_speed_filenames,
-                        EdgeWeight old_weight,
+                        const EdgeWeight old_weight,
                         const double log_edge_updates_factor)
 {
     const auto new_segment_weight =
