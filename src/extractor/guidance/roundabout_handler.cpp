@@ -278,7 +278,7 @@ RoundaboutType RoundaboutHandler::getRoundaboutType(const NodeID nid) const
     };
 
     const auto getEdgeLength = [&](const NodeID source_node, EdgeID eid) {
-        auto length = 0;
+        double length = 0.;
         auto last_coord = getCoordinate(source_node);
         const auto &edge_bucket = compressed_edge_container.GetBucketReference(eid);
         for (const auto &compressed_edge : edge_bucket)
@@ -294,7 +294,7 @@ RoundaboutType RoundaboutHandler::getRoundaboutType(const NodeID nid) const
     // to guarantee this, we search the full roundabout for its vertices
     // and select the three smallest ids
     std::set<NodeID> roundabout_nodes; // needs to be sorted
-    auto roundabout_length = 0;
+    double roundabout_length = 0.;
 
     NodeID last_node = nid;
     while (0 == roundabout_nodes.count(last_node))
