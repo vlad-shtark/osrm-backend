@@ -379,10 +379,6 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
             intersection =
                 turn_lane_handler.assignTurnLanes(node_u, edge_from_u, std::move(intersection));
 
-            std::cout << "[intersection] " << node_u << " " << edge_from_u << "\n";
-            for (auto road : intersection)
-                std::cout << "\t" << toString(road) << std::endl;
-
             const auto possible_turns = turn_analysis.transformIntersectionIntoTurns(intersection);
 
             // the entry class depends on the turn, so we have to classify the interesction for
@@ -456,8 +452,9 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
                     turn_instruction,
                     entry_class_id,
                     edge_data1.travel_mode,
-                    util::guidance::TurnBearing(
-                        util::bearing::reverseBearing(possible_turns[0].bearing)),
+                    // we need to access the intersection for the in-bearing, since the turns might
+                    // have filtered out the u-turn
+                    util::guidance::TurnBearing(intersection[0].turn.bearing),
                     util::guidance::TurnBearing(turn.bearing));
 
                 ++original_edges_counter;

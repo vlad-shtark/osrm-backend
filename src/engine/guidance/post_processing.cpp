@@ -320,6 +320,7 @@ void closeOffRoundabout(const bool on_roundabout,
                                        entry_intersection.bearings[entry_intersection.in]),
                                    exit_bearing);
 
+                    auto bearings = propagation_step.intersections.front().bearings;
                     propagation_step.maneuver.instruction.direction_modifier =
                         ::osrm::util::guidance::getTurnDirection(angle);
                 }

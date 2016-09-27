@@ -137,12 +137,6 @@ inline std::vector<RouteStep> assembleSteps(const datafacade::BaseDataFacade &fa
                 const auto bearing_class =
                     facade.GetBearingClass(facade.GetBearingClassID(path_point.turn_via_node));
                 auto bearing_data = bearing_class.getAvailableBearings();
-                std::cout << "Bearings: " << bearings.first << " " << bearings.second << " -";
-                for( auto b : bearing_data )
-                {
-                    std::cout << " " << b;
-                }
-                std::cout << std::endl;
                 intersection.in = bearing_class.findMatchingBearing(bearings.first);
                 intersection.out = bearing_class.findMatchingBearing(bearings.second);
                 intersection.location = facade.GetCoordinateOfNode(path_point.turn_via_node);
@@ -161,8 +155,10 @@ inline std::vector<RouteStep> assembleSteps(const datafacade::BaseDataFacade &fa
                 {
                     intersection.entry.push_back(entry_class.allowsEntry(idx));
                 }
+                std::int16_t bearing_in_driving_direction =
+                    util::bearing::reverseBearing(std::round(bearings.first));
                 maneuver = {intersection.location,
-                            bearings.first,
+                            bearing_in_driving_direction,
                             bearings.second,
                             path_point.turn_instruction,
                             WaypointType::None,
